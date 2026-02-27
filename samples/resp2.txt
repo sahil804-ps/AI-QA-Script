@@ -1,0 +1,11 @@
+Gravity is a natural phenomenon that describes the attraction between objects that have mass. 
+Isaac Newton formulated the first mathematical description of gravity, showing that every object 
+with mass attracts every other object. The force increases with mass and decreases with distance.
+
+Albert Einstein later refined our understanding through general relativity, describing gravity 
+not as a force but as a curvature in the fabric of spacetime. Massive objects bend spacetime, 
+and other objects follow those curves — which we experience as gravitational pull.
+
+Gravity is responsible for keeping Earth's atmosphere, holding the Moon in orbit, and 
+governing the structure of galaxies. It is considered the weakest fundamental force, yet 
+it operates over infinite distances.

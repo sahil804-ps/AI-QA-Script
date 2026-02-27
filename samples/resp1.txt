@@ -1,0 +1,11 @@
+Gravity is a fundamental force of nature that attracts objects with mass toward each other. 
+According to Newton's law of universal gravitation, the gravitational force between two objects 
+is proportional to their masses and inversely proportional to the square of the distance between them.
+
+Einstein's general theory of relativity later provided a deeper understanding: gravity is actually 
+the curvature of spacetime caused by mass and energy. Objects follow curved paths through spacetime, 
+which we perceive as gravitational attraction.
+
+In everyday terms, gravity is what keeps us grounded on Earth, what causes objects to fall when dropped, 
+and what holds the planets in orbit around the Sun. It is the weakest of the four fundamental forces 
+but has the longest range.
