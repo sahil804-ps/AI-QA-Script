@@ -3,12 +3,13 @@ report.py — Pretty console output + JSON report generator
 """
 
 import json
+import os
 from dataclasses import asdict
 from typing import Optional
 
 from colorama import init, Fore, Style
 
-from ai_qa_validator import ValidationReport, ConsistencyResult, HallucinationResult, ConfidenceResult
+from shared.ai_qa_validator import ValidationReport, ConsistencyResult
 
 init(autoreset=True)  # Colorama auto-reset
 
@@ -92,11 +93,11 @@ def print_hallucination(results: list, response_labels: list):
               f"  |  Flagged: {result.flagged_sentences}/{result.total_sentences} sentences")
 
         if result.matches:
-            shown = {}
+            shown = {} # Used to track unique sentences already printed
             for m in result.matches:
                 key = m.sentence[:80]
                 if key not in shown:
-                    shown[key] = m.category
+                    shown[key] = m.category # Mark as shown
                     cat_color = {
                         "overconfident": Fore.RED,
                         "suspicious_numeric": Fore.MAGENTA,
@@ -139,7 +140,7 @@ def print_overall(verdict: str, prompt: Optional[str]):
 def print_report(report: ValidationReport):
     print()
     print(_col("╔══════════════════════════════════════════════════════════╗", Fore.CYAN + Style.BRIGHT))
-    print(_col("║          🤖  AI RESPONSE QUALITY VALIDATOR               ║", Fore.CYAN + Style.BRIGHT))
+    print(_col("   AI RESPONSE QUALITY VALIDATOR   ", Fore.CYAN + Style.BRIGHT))
     print(_col("╚══════════════════════════════════════════════════════════╝", Fore.CYAN + Style.BRIGHT))
     print()
 
@@ -173,8 +174,11 @@ def _result_to_dict(report: ValidationReport) -> dict:
     }
 
 
-def save_json_report(report: ValidationReport, output_path: str):
-    data = _result_to_dict(report)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, default=str)
-    print(_col(f"\n  💾  JSON report saved → {output_path}", Fore.GREEN))
+def save_json_report(report: ValidationReport, path: str):
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    
+    data = report.to_dict()
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    print(f"  {Fore.GREEN}💾 Report saved to: {Fore.WHITE}{path}{Style.RESET_ALL}")

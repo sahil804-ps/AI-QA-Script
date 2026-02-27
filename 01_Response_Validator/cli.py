@@ -11,8 +11,11 @@ import argparse
 import sys
 import os
 
-from ai_qa_validator import AIQAValidator
-from report import print_report, save_json_report
+# Add parent directory to path so we can import from 'shared'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from shared.ai_qa_validator import AIQAValidator
+from shared.report import print_report, save_json_report
 
 
 def read_file(path: str) -> str:

@@ -8,15 +8,14 @@ Three components:
 """
 
 import re
-import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, asdict
 from typing import List, Optional
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from config import (
+from shared.config import (
     CONSISTENCY_THRESHOLD,
     OVERCONFIDENT_PHRASES,
     SUSPICIOUS_NUMERIC_PATTERNS,
@@ -41,6 +40,9 @@ class ConsistencyResult:
     num_responses: int
     threshold_used: float
 
+    def to_dict(self):
+        return asdict(self)
+
 
 @dataclass
 class HallucinationMatch:
@@ -58,6 +60,9 @@ class HallucinationResult:
     total_sentences: int
     flagged_sentences: int
 
+    def to_dict(self):
+        return asdict(self)
+
 
 @dataclass
 class ConfidenceResult:
@@ -66,6 +71,9 @@ class ConfidenceResult:
     breakdown: dict                     # {component: score}
     word_count: int
     verdict: str                        # RELIABLE | ACCEPTABLE | UNRELIABLE
+
+    def to_dict(self):
+        return asdict(self)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -299,6 +307,16 @@ class ValidationReport:
     hallucination: List[HallucinationResult]
     confidence: List[ConfidenceResult]
     overall_verdict: str          # PASS | WARN | FAIL
+
+    def to_dict(self):
+        return {
+            "prompt": self.prompt,
+            "overall_verdict": self.overall_verdict,
+            "num_responses": len(self.responses),
+            "consistency": self.consistency.to_dict() if self.consistency else None,
+            "hallucination": [h.to_dict() for h in self.hallucination],
+            "confidence": [c.to_dict() for c in self.confidence],
+        }
 
 
 class AIQAValidator:

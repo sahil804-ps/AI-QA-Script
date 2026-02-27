@@ -1,8 +1,32 @@
-# 🤖 AI QA Script — AI Response Quality Validator
+# 🧰 AI-QA-Toolkit
 
-A lightweight Python CLI tool to validate AI-generated responses for **consistency**, **hallucination risk**, and **confidence quality** — no API keys or model access required.
+A comprehensive suite for AI Quality Assurance, including response validation, hallucination detection, and multi-model regression testing.
+
+```mermaid
+graph TD
+    User([User Prompt]) --> CLI[Interactive CLI / Regression Tester]
+    CLI --> Router{Model Router}
+    Router --> GPT[OpenAI GPT-4o]
+    Router --> Gemini[Google Gemini 1.5]
+    Router --> Claude[Anthropic Claude 3]
+    GPT & Gemini & Claude --> Shared[(Shared Engine)]
+    Shared --> Validator[Response Validator]
+    Shared --> Hallucination[Hallucination Detector]
+    Validator & Hallucination --> Report[Rich QA Report / JSON]
+```
 
 ---
+
+## 📂 Toolkit Structure
+
+| Module | Description | Day |
+|---|---|---|
+| `01_Response_Validator` | Interactive & CLI based model validation | Day 1 |
+| `02_Hallucination_Detector` | Standalone hallucination pattern scanner | Day 2 |
+| `03_Regression_Tester` | Multi-model behavior comparison tool | Day 3 |
+| `shared/` | Shared AI clients and validation logic | Day 4 |
+| `reports/` | Sample QA results and performance data | Day 6 |
+
 
 ## Features
 
@@ -27,7 +51,23 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Test consistency of two responses
+### 1. Interactive Multi-AI Mode (OpenRouter Support! 🚀)
+Type a prompt and compare responses from **GPT, Gemini, Llama 3, and DeepSeek** using just ONE key.
+
+```bash
+# Compare Gemini and Llama-3 automatically
+python 01_Response_Validator/interactive.py --ais or llama
+```
+*Tip: Use `--ais gpt gemini` to select specific models.*
+
+### 2. Auto-Automation (Batch Mode) ⚡
+Run multiple prompts from a file without any manual entry. Perfect for real QA.
+
+```bash
+python 03_Regression_Tester/regression_tester.py --batch prompts.json
+```
+
+### 2. Test consistency of two responses (Manual)
 ```bash
 python cli.py --responses samples/resp1.txt samples/resp2.txt --prompt "What is gravity?"
 ```
@@ -166,18 +206,21 @@ Score 0–2 = LOW, 3–6 = MEDIUM, 7+ = HIGH
 ## Project Structure
 
 ```
-AI QA Script/
-├── ai_qa_validator.py   # Core engine (ConsistencyChecker, HallucinationDetector, ConfidenceScorer)
-├── cli.py               # CLI entry point
-├── config.py            # Thresholds and pattern configuration
-├── report.py            # Console output and JSON export
+AI-QA-Toolkit/
+├── 01_Response_Validator/
+│   ├── interactive.py   # Main demo script
+│   └── cli.py           # Command line validator
+├── 02_Hallucination_Detector/
+│   └── hallucination_demo.py
+├── 03_Regression_Tester/
+│   └── regression_tester.py # Batch Automation tool
+├── shared/
+│   ├── ai_clients.py    # Multi-AI Engine
+│   ├── ai_qa_validator.py # Core Scorer
+│   └── report.py        # Visual Reports
+├── prompts.json         # Batch input file
 ├── requirements.txt
-├── .gitignore
-├── README.md
-└── samples/
-    ├── resp1.txt               # Good quality response example
-    ├── resp2.txt               # Consistent second response
-    └── resp_hallucination.txt  # High-risk hallucination example
+└── .env                 # API Keys
 ```
 
 ---

@@ -33,6 +33,12 @@ OVERCONFIDENT_PHRASES = [
     r"\bfact is\b",
     r"\bits a fact\b",
     r"\bwithout question\b",
+    r"\bcompletely certain\b",
+    r"\bundisputed\b",
+    r"\buniversally acknowledged\b",
+    r"\bthere is no doubt that\b",
+    r"\bcompletely (true|accurate|reliable)\b",
+    r"\bfactually (correct|accurate)\b",
 ]
 
 # Patterns that suggest fabricated numeric stats
@@ -41,6 +47,10 @@ SUSPICIOUS_NUMERIC_PATTERNS = [
     r"\b(according to|based on)\s+.*\bstudy\b",
     r"\b\d+\s*(million|billion|trillion)\s*(people|users|dollars)\b",
     r"\b(research|statistics|data)\s+show(s)?\b",
+    r"\breach(es|ed)?\s+\d{1,3}(\.\d+)?\s*%\b",
+    r"\bin the year \d{4}\b",
+    r"\b(over|more than|approximately)\s+\d+\s+%\b",
+    r"\bsurvey\s+of\s+\d+\s+participants\b",
 ]
 
 # Hedged hallucination markers (AI guessing with false confidence)
@@ -50,6 +60,10 @@ HEDGED_HALLUCINATION_PHRASES = [
     r"\bI('m| am) pretty sure\b",
     r"\bI might be wrong but\b",
     r"\bto the best of my knowledge\b",
+    r"\bI cannot verify this but\b",
+    r"\bI don't have real-time access but\b",
+    r"\bI suspect that\b",
+    r"\bit's likely that\s*.*\s*but I can't be certain\b",
 ]
 
 # Risk scoring weights

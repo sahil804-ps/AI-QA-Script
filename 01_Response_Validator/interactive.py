@@ -7,60 +7,24 @@ Usage:
 """
 
 import sys
-import time
-import threading
 import argparse
+import os
 
 from colorama import init, Fore, Style
 
-from ai_clients import AIResponse
-from ai_qa_validator import AIQAValidator
-from report import save_json_report
+# Add parent directory to path so we can import from 'shared'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from shared.ai_clients import AIResponse, Spinner, fetch_with_spinners
+from shared.ai_qa_validator import AIQAValidator
+from shared.report import save_json_report, _col
 
 init(autoreset=True)
 
 
 # ═══════════════════════════════════════════════════════════════
-# Spinner for loading animation
-# ═══════════════════════════════════════════════════════════════
-
-class Spinner:
-    CHARS = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-
-    def __init__(self, message: str):
-        self.message = message
-        self._running = False
-        self._thread = None
-
-    def _spin(self):
-        i = 0
-        while self._running:
-            char = self.CHARS[i % len(self.CHARS)]
-            print(f"\r  {Fore.CYAN}{char}{Style.RESET_ALL}  {self.message}", end="", flush=True)
-            time.sleep(0.08)
-            i += 1
-
-    def start(self):
-        self._running = True
-        self._thread = threading.Thread(target=self._spin, daemon=True)
-        self._thread.start()
-
-    def stop(self, success: bool = True, label: str = ""):
-        self._running = False
-        if self._thread:
-            self._thread.join()
-        icon = f"{Fore.GREEN}✅" if success else f"{Fore.RED}❌"
-        suffix = f"  {Fore.WHITE}{label}" if label else ""
-        print(f"\r  {icon}  {self.message}{suffix}{Style.RESET_ALL}")
-
-
-# ═══════════════════════════════════════════════════════════════
 # Pretty print AI responses before QA
 # ═══════════════════════════════════════════════════════════════
-
-def _col(text, color):
-    return f"{color}{text}{Style.RESET_ALL}"
-
 
 def print_ai_responses(responses: list[AIResponse]):
     print()
@@ -85,74 +49,6 @@ def print_ai_responses(responses: list[AIResponse]):
 
 
 # ═══════════════════════════════════════════════════════════════
-# Per-AI fetch with individual spinner
-# ═══════════════════════════════════════════════════════════════
-
-def fetch_with_spinners(prompt: str, selected=None) -> list[AIResponse]:
-    """Fetch responses from all AIs, showing a spinner per AI."""
-    from ai_clients import ALL_CLIENTS, OpenAIClient, GeminiClient, AnthropicClient
-    import concurrent.futures
-
-    name_map = {
-        "gpt": OpenAIClient, "chatgpt": OpenAIClient, "openai": OpenAIClient,
-        "gemini": GeminiClient, "google": GeminiClient,
-        "claude": AnthropicClient, "anthropic": AnthropicClient,
-    }
-
-    if selected:
-        seen = set()
-        clients = []
-        for s in selected:
-            cls = name_map.get(s.lower())
-            if cls and cls not in seen:
-                clients.append(cls())
-                seen.add(cls)
-    else:
-        clients = [cls() for cls in ALL_CLIENTS]
-
-    print()
-    print(_col("  🚀  Fetching responses from AIs...", Fore.CYAN))
-    print()
-
-    results = []
-    result_lock = threading.Lock()
-    spinners: dict = {}
-
-    # Start all spinners
-    for client in clients:
-        sp = Spinner(f"Calling {client.ai_name} ({client.model})...")
-        spinners[client.ai_name] = sp
-        sp.start()
-
-    def call_one(client):
-        if not client.is_available():
-            resp = AIResponse(
-                ai_name=client.ai_name, model=client.model,
-                response=None, success=False,
-                error="API key not set"
-            )
-        else:
-            resp = client.get_response(prompt)
-
-        sp = spinners[client.ai_name]
-        if resp.success:
-            word_count = len(resp.response.split())
-            sp.stop(success=True, label=f"({word_count} words)")
-        else:
-            sp.stop(success=False, label=f"({resp.error[:50]})")
-
-        with result_lock:
-            results.append(resp)
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(clients)) as executor:
-        futures = [executor.submit(call_one, c) for c in clients]
-        concurrent.futures.wait(futures)
-
-    results.sort(key=lambda r: r.ai_name)
-    return results
-
-
-# ═══════════════════════════════════════════════════════════════
 # Main Interactive Flow
 # ═══════════════════════════════════════════════════════════════
 
@@ -162,7 +58,8 @@ def run_interactive(selected_ais=None, output_file=None):
     print(_col("║      🤖  AI QA VALIDATOR — INTERACTIVE MODE              ║", Fore.CYAN + Style.BRIGHT))
     print(_col("╚══════════════════════════════════════════════════════════╝", Fore.CYAN + Style.BRIGHT))
     print()
-    print(f"  {Fore.WHITE}AIs active : {Fore.YELLOW}{', '.join(selected_ais) if selected_ais else 'GPT + Gemini + Claude'}{Style.RESET_ALL}")
+    active_ais = selected_ais if selected_ais else ["GPT", "Gemini", "Claude", "OpenRouter"]
+    print(f"  {Fore.WHITE}AIs active : {Fore.YELLOW}{' + '.join(active_ais)}{Style.RESET_ALL}")
     print(f"  {Fore.WHITE}Type your prompt and press Enter.{Style.RESET_ALL}")
     print(f"  {Fore.WHITE}Type {Fore.YELLOW}exit{Fore.WHITE} to quit.{Style.RESET_ALL}")
     print()
@@ -228,7 +125,7 @@ def run_interactive(selected_ais=None, output_file=None):
 
 def _print_report_with_labels(report, labels):
     """Print report using AI names as labels instead of generic 'Response 1'."""
-    from report import (
+    from shared.report import (
         print_consistency, print_hallucination,
         print_confidence, print_overall
     )
@@ -266,8 +163,8 @@ Examples:
     parser.add_argument(
         "--ais", nargs="+",
         metavar="AI",
-        help="Which AIs to use: gpt, gemini, claude (default: all)",
-        choices=["gpt", "chatgpt", "openai", "gemini", "google", "claude", "anthropic"],
+        help="Which AIs to use: gpt, gemini, claude, openrouter, llama, deepseek (default: all)",
+        choices=["gpt", "chatgpt", "openai", "gemini", "google", "claude", "anthropic", "openrouter", "or", "llama", "deepseek", "ds"],
     )
     parser.add_argument(
         "--output", "-o",

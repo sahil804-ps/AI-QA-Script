@@ -18,30 +18,20 @@ ENV/
 *.swp
 *.swo
 
-# Reports / Output
-*.json
+# Output / Reports (Private)
+reports/
+report_*.json
+or_test.json
+or_final_test.json
+*.log
+
+# Keep versioned test data
+!prompts.json
 !samples/
 
 # Environment / API Keys — NEVER COMMIT
 .env
-
-# OS
-.DS_Store
-Thumbs.db
-
-venv/
-env/
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Reports / Output
-*.json
-!samples/
+.env.local
 
 # OS
 .DS_Store
