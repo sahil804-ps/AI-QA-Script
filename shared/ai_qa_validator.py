@@ -35,10 +35,12 @@ from shared.config import (
 @dataclass
 class ConsistencyResult:
     verdict: str                        # CONSISTENT | INCONSISTENT | NEEDS_MORE_SAMPLES
-    average_similarity: float           # 0.0 – 1.0
+    average_similarity: float           # 0.0 – 1.0 (Legacy)
     pairwise_scores: List[dict]         # [{pair: (i, j), score: float}]
     num_responses: int
     threshold_used: float
+    consistency_score: float            # 0.0 – 100.0 (Normalized)
+    agreement_index: float              # 0.0 – 100.0 (Model Consensus)
 
     def to_dict(self):
         return asdict(self)
@@ -56,6 +58,7 @@ class HallucinationMatch:
 class HallucinationResult:
     risk_level: str                     # LOW | MEDIUM | HIGH
     risk_score: int
+    risk_index: float                   # 0.0 – 100.0 (Standardized Risk)
     matches: List[HallucinationMatch]
     total_sentences: int
     flagged_sentences: int
@@ -125,9 +128,16 @@ class ConsistencyChecker:
         avg_sim = float(np.mean(scores)) if scores else 0.0
         verdict = "CONSISTENT" if avg_sim >= self.threshold else "INCONSISTENT"
 
+        # Agreement Index (Standard Deviation based consensus)
+        # Higher similarity + Lower variance = Higher Agreement
+        std_dev = float(np.std(scores)) if len(scores) > 1 else 0.0
+        agreement_index = max(0.0, (avg_sim * 100) - (std_dev * 50))
+
         return ConsistencyResult(
             verdict=verdict,
             average_similarity=round(avg_sim, 4),
+            consistency_score=round(avg_sim * 100, 2),
+            agreement_index=round(agreement_index, 2),
             pairwise_scores=pairwise_scores,
             num_responses=n,
             threshold_used=self.threshold,
@@ -181,9 +191,14 @@ class HallucinationDetector:
                 risk_level = level
                 break
 
+        # Standardized Risk Index (0-100)
+        # 0 = No Risk, 100 = Guaranteed Hallucination/Dangerous
+        risk_index = min(100.0, (risk_score * 10))
+
         return HallucinationResult(
             risk_level=risk_level,
             risk_score=risk_score,
+            risk_index=risk_index,
             matches=matches,
             total_sentences=len(sentences),
             flagged_sentences=len(flagged_sentence_indices),

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  toolkit:
+    build: .
+    volumes:
+      - .:/app
+      - ./reports:/app/reports
+    env_file:
+      - .env
+    stdin_open: true # Allows interactive mode
+    tty: true        # Allows interactive mode
+    command: python 01_Response_Validator/interactive.py

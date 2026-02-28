@@ -68,8 +68,8 @@ def print_consistency(result: Optional[ConsistencyResult]):
     _header("🔁  CONSISTENCY CHECK")
     vc = _verdict_color(result.verdict)
     print(f"  Verdict         : {_col(f'{_badge(result.verdict)} {result.verdict}', vc)}")
-    print(f"  Avg Similarity  : {_col(f'{result.average_similarity:.4f}', Fore.WHITE)}  "
-          f"(threshold: {result.threshold_used})")
+    print(f"  Consistency     : {_col(f'{result.consistency_score}%', Fore.WHITE)}  ({_badge('A' if result.consistency_score >= 85 else 'C')} Score)")
+    print(f"  Agreement Index : {_col(f'{result.agreement_index}%', Fore.MAGENTA)}  (Consensus)")
     print(f"  Responses       : {result.num_responses}")
 
     if result.pairwise_scores:
@@ -89,7 +89,7 @@ def print_hallucination(results: list, response_labels: list):
     for label, result in zip(response_labels, results):
         vc = _verdict_color(result.risk_level)
         print(f"  {label}  Risk: {_col(f'{_badge(result.risk_level)} {result.risk_level}', vc)}"
-              f"  |  Score: {result.risk_score}"
+              f"  |  Index: {_col(f'{result.risk_index}', Fore.WHITE)}"
               f"  |  Flagged: {result.flagged_sentences}/{result.total_sentences} sentences")
 
         if result.matches:

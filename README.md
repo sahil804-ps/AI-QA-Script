@@ -1,6 +1,6 @@
-# 🧰 AI-QA-Toolkit
+# 🧰 AI-Evaluation-Framework (v2)
 
-A comprehensive suite for AI Quality Assurance, including response validation, hallucination detection, and multi-model regression testing.
+A professional-grade suite for AI Quality Assurance, including response validation, hallucination detection, model agreement indices, and prompt drift tracking.
 
 ```mermaid
 graph TD
@@ -35,6 +35,11 @@ graph TD
 | 🔁 **Consistency** | Compares 2+ responses for semantic similarity using TF-IDF cosine similarity |
 | 🚨 **Hallucination Detection** | Flags overconfident claims, fake statistics, and hedged guesses |
 | 📊 **Confidence Scoring** | Scores response quality 0–100 across 5 dimensions |
+| 🎯 **Agreement Index** | Measures model consensus and convergence |
+| 📉 **Drift Tracking** | Detects quality regressions against a baseline |
+| 🐳 **Docker Support** | One-command setup using Docker & Docker Compose |
+| 🔄 **CI/CD Ready** | Integrated GitHub Actions for automated regression |
+| 📱 **HTML Dashboard v2** | Premium, responsive visual reports for batch runs |
 
 ---
 
@@ -65,6 +70,13 @@ Run multiple prompts from a file without any manual entry. Perfect for real QA.
 
 ```bash
 python 03_Regression_Tester/regression_tester.py --batch prompts.json
+```
+*Note: This automatically generates an HTML Dashboard in the output directory.*
+
+### 3. Docker Mode 🐳
+Run the entire toolkit without installing Python dependencies locally.
+```bash
+docker-compose up
 ```
 
 ### 2. Test consistency of two responses (Manual)
@@ -222,6 +234,25 @@ AI-QA-Toolkit/
 ├── requirements.txt
 └── .env                 # API Keys
 ```
+
+---
+
+## 🔬 Framework Metrics (v2)
+
+### 🎯 Model Agreement Index
+A consensus score derived from pairwise similarity and variance across all active AI models.
+
+### 🚨 Hallucination Risk Index (0–100)
+A standardized risk metric:
+- **0–30**: Low Risk (Safe)
+- **30–70**: Medium Risk (Fact-check required)
+- **70–100**: High Risk (Likely Hallucination)
+
+### 🔁 Consistency Score (0–100)
+Normalized semantic similarity across responses.
+
+### 📉 Prompt Drift Tracking
+Detects semantic and quality shifts by comparing current batch runs against a baseline directory.
 
 ---
 

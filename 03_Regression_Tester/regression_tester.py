@@ -17,6 +17,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from shared.ai_clients import fetch_with_spinners
 from shared.ai_qa_validator import AIQAValidator
 from shared.report import save_json_report, _col
+from shared.dashboard_gen import generate_dashboard
+from shared.drift import PromptDriftTracker
 from colorama import Fore, Style, init
 
 init(autoreset=True)
@@ -87,13 +89,13 @@ def main():
     parser = argparse.ArgumentParser(description="AI Prompt Regression Tester (Batch Automated)")
     parser.add_argument("prompt", nargs="?", help="Specific prompt to test (optional if using --batch)")
     parser.add_argument("--batch", "-b", metavar="FILE", help="JSON file containing a list of prompts")
-    parser.add_argument(
-        "--ais", nargs="+",
-        metavar="AI",
-        help="Which AIs to use: gpt, gemini, claude, openrouter, llama, deepseek (default: all)",
-        choices=["gpt", "chatgpt", "openai", "gemini", "google", "claude", "anthropic", "openrouter", "or", "llama", "deepseek", "ds"],
+    parser.add_argument("--ais", nargs="+",
+                        metavar="AI",
+                        help="Which AIs to use: gpt, gemini, claude, openrouter, llama, deepseek (default: all)",
+                        choices=["gpt", "chatgpt", "openai", "gemini", "google", "claude", "anthropic", "openrouter", "or", "llama", "deepseek", "ds"],
     )
     parser.add_argument("--output", "-o", help="Save regression report to JSON (or directory if batch)")
+    parser.add_argument("--baseline", help="Directory containing baseline JSON reports to compare drift")
     
     args = parser.parse_args()
 
@@ -144,6 +146,29 @@ def main():
         print(f"  Processed {len(results)}/{total} prompts successfully.")
         if out_dir:
             print(f"  All reports saved in: {Fore.YELLOW}{out_dir}")
+            
+            # Drift Tracking
+            drift_data = None
+            if args.baseline:
+                print(f"  📉 {Fore.CYAN}Calculating drift against baseline: {Fore.WHITE}{args.baseline}")
+                tracker = PromptDriftTracker()
+                baseline_reports = []
+                # Load baseline reports
+                import glob
+                for f in glob.glob(os.path.join(args.baseline, "*.json")):
+                    try:
+                        with open(f, 'r', encoding='utf-8') as bjf:
+                            baseline_reports.append(json.load(bjf))
+                    except: pass
+                
+                curr_dicts = [r.to_dict() for r in results]
+                drift_data = tracker.track_batch_drift(curr_dicts, baseline_reports)
+                print(f"  Result: {Fore.YELLOW}{drift_data['avg_drift']} avg drift, {drift_data['regressions_found']} regressions.")
+
+            # Generate HTML Dashboard
+            db_path = generate_dashboard(out_dir)
+            if db_path:
+                print(f"  📊 {Fore.CYAN}HTML Dashboard generated: {Fore.WHITE}{db_path}")
         print()
 
 if __name__ == "__main__":
